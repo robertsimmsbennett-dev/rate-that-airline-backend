@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Mail Games App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Font Import -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f2f5; /* Light grey background for the outer page */
+        }
+        /* Generic styling for SVG icons to ensure they inherit color correctly */
+        .svg-icon {
+          stroke: currentColor;
+        }
+
+        /* For the carousel, to ensure smooth scrolling behavior */
+        .snap-x-mandatory {
+            scroll-snap-type: x mandatory;
+        }
+        .snap-start {
+            scroll-snap-align: start;
+        }
+
+        /* Custom style for the dark overlay on carousel images - now obsolete for carousel items but kept for reference if needed elsewhere */
+        /* .game-card-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 50%);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: flex-start;
+            padding: 1rem;
+            color: white;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .game-card:hover .game-card-overlay {
+            opacity: 1;
+        } */
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <!-- React CDN - SPECIFIC VERSION FOR STABILITY -->
+    <script src="https://unpkg.com/react@17.0.2/umd/react.development.js"></script>
+    <!-- ReactDOM CDN - SPECIFIC VERSION FOR STABILITY -->
+    <script src="https://unpkg.com/react-dom@17.0.2/umd/react-dom.development.js"></script>
+    <!-- Babel for JSX transformation. Must load after all libraries it needs to transpile. -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+
+    <script type="text/babel">
+        // Ensure ReactDOM.render and the entire application are defined after the DOM and all scripts are ready.
+        window.onload = function() {
+            // No need to dynamically load lucide-react or wait for it, as we are now using inline SVGs.
+
+            // Define SVG icons as components for reusability.
+            // These are simplified versions based on Lucide icons.
+            const HomeIcon = ({ size = 20, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                </svg>
+            );
+
+            const UserIcon = ({ size = 20, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+            );
+
+            // Chess Rook Icon - Updated to be slightly smaller and centered
+            const ChessRookIcon = ({ size = 24, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+                    <path d="M5 21h14v-2H5v2zM6 18h12V9H6v9zM8 9V7h1v2H8zm3 0V7h1v2h-1zm3 0V7h1v2h-1zM5 4h14V2H5v2z"/>
+                </svg>
+            );
+
+
+            const ClockIcon = ({ size = 16, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+            );
+
+            const StarIcon = ({ size = 16, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+            );
+
+            const TargetIcon = ({ size = 16, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <circle cx="12" cy="12" r="6"></circle>
+                    <circle cx="12" cy="12" r="2"></circle>
+                </svg>
+            );
+
+            const TrendingUpIcon = ({ size = 20, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                    <polyline points="16 7 22 7 22 13"></polyline>
+                </svg>
+            );
+
+            const FilterIcon = ({ size = 16, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+            );
+
+            const RotateCcwIcon = ({ size = 16, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.76 2.75L3 8"></path>
+                    <path d="M3 3v5h5"></path>
+                </svg>
+            );
+
+            const XIcon = ({ size = 20, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            );
+
+            const MedalIcon = ({ size = 20, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <path d="M12 4V2"></path>
+                    <path d="M15.4 6.5l-.9-1.9"></path>
+                    <path d="M9.4 6.5l.9-1.9"></path>
+                    <path d="M12 11.5l.9 1.9"></path>
+                    <path d="M8.6 9.5l.9-1.9"></path>
+                    <circle cx="12" cy="11" r="4"></circle>
+                    <path d="M14.5 17.5l-2.4 2.4-2.6-2.6"></path>
+                </svg>
+            );
+
+            const ZapIcon = ({ size = 20, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                </svg>
+            );
+
+            const CrownIcon = ({ size = 20, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <path d="M5.5 13.5L3 6l5 3 4-9 4 9 5-3-2.5 7.5"></path>
+                    <path d="M2 13.5L12 22l10-8.5"></path>
+                </svg>
+            );
+
+            const CalendarIcon = ({ size = 20, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+            );
+
+            const MapPinIcon = ({ size = 12, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <path d="M12 19.5l-7-7A5 5 0 0 1 12 2a5 5 0 0 1 7 7l-7 7z"></path>
+                    <circle cx="12" cy="9" r="3"></circle>
+                </svg>
+            );
+
+            const AwardIcon = ({ size = 20, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <circle cx="12" cy="8" r="7"></circle>
+                    <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.89"></polyline>
+                </svg>
+            );
+
+            const BellIcon = ({ size = 20, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinecap="round" className={className}>
+                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+            );
+
+            const SearchIcon = ({ size = 20, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            );
+
+            const XCircleIcon = ({ size = 20, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                </svg>
+            );
+
+            const CheckCircleIcon = ({ size = 20, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-8.87"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+            );
+
+            const EyeIcon = ({ size = 20, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+            );
+
+            const PaletteIcon = ({ size = 20, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 12L20 4"></path>
+                    <path d="M12 12L4 20"></path>
+                    <path d="M12 12L4 4"></path>
+                    <path d="M12 12L20 20"></path>
+                    <line x1="12" y1="12" x2="12" y2="4"></line>
+                    <line x1="12" y1="12" x2="20" y2="12"></line>
+                    <line x1="12" y1="12" x2="4" y2="12"></line>
+                    <line x1="12" y1="12" x2="12" y2="20"></line>
+                </svg>
+            );
+
+            const ShareIcon = ({ size = 20, className = '' }) => (
+                <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                    <polyline points="16 6 12 2 8 6"></polyline>
+                    <line x1="12" y1="2" x2="12" y2="15"></line>
+                </svg>
+            );
+
+            // Pixel Severus Snape Icon (simple representation)
+            const PixelSnapeIcon = ({ size = 24, className = '' }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+                    {/* Background head shape, simple */}
+                    <rect x="6" y="6" width="12" height="12" fill="#333" />
+                    {/* Hair (top part) */}
+                    <rect x="5" y="4" width="14" height="4" fill="#1a1a1a" />
+                    {/* Nose (simple pixel) */}
+                    <rect x="11" y="10" width="2" height="4" fill="#000" />
+                    {/* Eyes (small pixels) */}
+                    <rect x="8" y="8" width="2" height="2" fill="#fff" />
+                    <rect x="14" y="8" width="2" height="2" fill="#fff" />
+                    {/* Mouth (small pixel line) */}
+                    <rect x="10" y="15" width="4" height="1" fill="#000" />
+                    {/* Robe/Neck (simple) */}
+                    <rect x="7" y="17" width="10" height="4" fill="#222" />
+                </svg>
+            );
+
+            const DailyMailGamesApp = () => {
+                const [currentView, setCurrentView] = React.useState('home');
+                const [selectedCategory, setSelectedCategory] = React.useState(null);
+                const [gameInProgress, setGameInProgress] = React.useState(false);
+                const [showBadgeNotification, setShowBadgeNotification] = React.useState(false);
+                const [showFilters, setShowFilters] = React.useState(false);
+                const [userStats] = React.useState({
+                    dailyStreak: 6,
+                    totalGamesPlayed: 142,
+                    averageScore: 87,
+                    rank: 3,
+                    badges: 12
+                });
+                const [showDailyMailPlusModal, setShowDailyMailPlusModal] = React.useState(false);
+                const [isDarkMode, setIsDarkMode] = React.useState(false);
+                const [isLargeFont, setIsLargeFont] = React.useState(false);
+                const [colorFilter, setColorFilter] = React.useState('none');
+                const [showSudokuNotification, setShowSudokuNotification] = React.useState(true); // State for Sudoku notification
+                // New state for ranking filter
+                const [currentRankingFilter, setCurrentRankingFilter] = React.useState('regional');
+                // New state for today's leaderboard game filter
+                const [selectedTodaysGameFilter, setSelectedTodaysGameFilter] = React.useState('all');
+
+
+                /* Pretend news headlines and briefs */
+                const newsHeadlines = [
+                    {
+                        id: 1,
+                        headline: 'King Charles in new health scare as Royal insiders reveal concerns',
+                        brief: 'The monarch is reportedly facing new health challenges, with palace sources indicating a period of rest. Royal watchers are on alert.',
+                        imageUrl: 'https://placehold.co/100x100/4CAF50/FFFFFF?text=King' // Pixel art style: Green background, white text
+                    },
+                    {
+                        id: 2,
+                        headline: 'England prepare for Euro 2024 showdown: Can they bring it home?',
+                        brief: 'Gareth Southgate’s squad gears up for a crucial match. Experts weigh in on their chances of winning the tournament this year.',
+                        imageUrl: 'https://placehold.co/100x100/FF5722/FFFFFF?text=Euro' // Pixel art style: Orange background, white text
+                    },
+                    {
+                        id: 3,
+                        headline: 'The Secret Life of British Spies: Uncovering MI6’s untold stories',
+                        brief: 'A new documentary uncovers thrilling true tales from Britain’s intelligence agency. Discover the brave agents who shaped history.',
+                        imageUrl: 'https://placehold.co/100x100/2196F3/FFFFFF?text=Spy' // Pixel art style: Blue background, white text
+                    },
+                    {
+                        id: 4,
+                        headline: 'Gardening guru shares top tips for a blooming summer garden',
+                        brief: 'Transform your outdoor space with these expert gardening hacks. From vibrant flowers to bountiful vegetables, get your garden ready.',
+                        imageUrl: 'https://placehold.co/100x100/9C27B0/FFFFFF?text=Garden' // Pixel art style: Purple background, white text
+                    },
+                     {
+                        id: 5,
+                        headline: 'Celebrity chef reveals shocking reason behind restaurant closure',
+                        brief: 'After years of success, a beloved celebrity restaurant is closing its doors. The chef breaks silence on the surprising truth.',
+                        imageUrl: 'https://placehold.co/100x100/FFC107/333333?text=Chef' // Pixel art style: Yellow background, dark text
+                    }
+                ];
+
+                // Re-using gameCategories for the carousel
+                const gameCategories = [
+                    {
+                        id: 'word-games',
+                        title: 'Word Games',
+                        icon: '🔤',
+                        description: 'Challenge your vocabulary',
+                        imageUrl: 'https://placehold.co/200x120/A0D0E0/333333?text=Word+Games',
+                        games: [ // Adding mock game data for the home page carousel logic
+                            { name: 'Word Ladder', difficulty: 'Medium', label: 'Just Updated', time: '5 min' },
+                            { name: 'Anagrams', difficulty: 'Easy', label: 'Most Popular', time: '3 min' },
+                            { name: 'Word Search', difficulty: 'Easy', label: 'Beat Your Score', time: '8 min' }
+                        ]
+                    },
+                    {
+                        id: 'crosswords',
+                        title: 'Crosswords',
+                        icon: '�',
+                        description: 'Classic puzzles daily',
+                        imageUrl: 'https://placehold.co/200x120/E0B8A0/333333?text=Crosswords',
+                        games: [
+                            { name: 'Quick Crossword', difficulty: 'Easy', label: 'Just Updated', time: '10 min' },
+                            { name: 'Cryptic Crossword', difficulty: 'Hard', label: 'Most Popular', time: '25 min' },
+                            { name: 'Mini Crossword', difficulty: 'Easy', label: 'Beat Your Score', time: '5 min' }
+                        ]
+                    },
+                    {
+                        id: 'puzzles',
+                        title: 'Logic Puzzles',
+                        icon: '🧩',
+                        description: 'Mind-bending challenges',
+                        imageUrl: 'https://placehold.co/200x120/B8E0D0/333333?text=Logic+Puzzles',
+                        games: [
+                            { name: 'Sudoku', difficulty: 'Medium', label: 'Just Updated', time: '12 min' },
+                            { name: 'Kakuro', difficulty: 'Hard', label: 'Most Popular', time: '15 min' },
+                            { name: 'Nonogram', difficulty: 'Medium', label: 'Beat Your Score', time: '18 min' }
+                        ]
+                    },
+                    {
+                        id: 'general-knowledge',
+                        title: 'General Knowledge',
+                        icon: '🧠',
+                        description: 'Test what you know',
+                        imageUrl: 'https://placehold.co/200x120/D0A0E0/333333?text=Quizzes',
+                        games: [
+                            { name: 'Daily Quiz', difficulty: 'Medium', label: 'Just Updated', time: '7 min' },
+                            { name: 'Geography Challenge', difficulty: 'Hard', label: 'Most Popular', time: '10 min' },
+                            { name: 'History Trivia', difficulty: 'Medium', label: 'Beat Your Score', time: '12 min' }
+                        ]
+                    }
+                ];
+
+                const userBadges = [
+                    { name: 'Word Wizard', icon: '🧙‍♂️', earned: true, description: 'Complete 10 word games' },
+                    { name: 'Streak Master', icon: '🔥', earned: true, description: 'Maintain 7-day streak' },
+                    { name: 'Speed Demon', icon: '⚡', earned: true, description: 'Complete puzzle in under 3 minutes' },
+                    { name: 'Logic Legend', icon: '🧠', earned: true, description: 'Solve 50 logic puzzles' },
+                    { name: 'Quiz Champion', icon: '👑', earned: false, description: 'Score 100% on 5 quizzes', progress: 3, total: 5, progressDescription: '3/5 quizzes with 100%' }, // Added progress
+                    { name: 'Sudoku Sage', icon: '📊', earned: true, description: 'Complete expert Sudoku' },
+                    { name: 'Daily Challenger', icon: '💪', earned: false, description: 'Play 5 games in a day', progress: 4, total: 5, progressDescription: '4/5 games played today' } // New badge with progress
+                ];
+
+                const leaderboardData = [
+                    // Regional Rankings
+                    { game: 'Sudoku', position: 3, score: 2840, region: 'London', type: 'regional' },
+                    { game: 'Word Ladder', position: 5, score: 1950, region: 'London', type: 'regional' },
+                    { game: 'Daily Quiz', position: 2, score: 3200, region: 'London', type: 'regional' },
+                    { game: 'Crossword', position: 7, score: 4100, region: 'London', type: 'regional' },
+
+                    // UK and Ireland Rankings
+                    { game: 'Sudoku', position: 15, score: 2840, region: 'UK', type: 'uk-ireland' },
+                    { game: 'Word Ladder', position: 22, score: 1950, region: 'UK', type: 'uk-ireland' },
+                    { game: 'Daily Quiz', position: 10, score: 3200, region: 'UK', type: 'uk-ireland' },
+                    { game: 'Crossword', position: 30, score: 4100, region: 'UK', type: 'uk-ireland' },
+
+                    // Global Rankings
+                    { game: 'Sudoku', position: 105, score: 2840, region: 'Global', type: 'global' },
+                    { game: 'Word Ladder', position: 150, score: 1950, region: 'Global', type: 'global' },
+                    { game: 'Daily Quiz', position: 80, score: 3200, region: 'Global', type: 'global' },
+                    { game: 'Crossword', position: 200, score: 4100, region: 'Global', type: 'global' }
+                ];
+
+                // Today's Leaderboard data with varied positions and unique gamer IDs
+                const todaysLeaderboardData = [
+                    { gameId: 'word-games', gameName: 'Word Ladder', gamerId: 'Gorgeous George', score: 1250, rank: 1 },
+                    { gameId: 'word-games', gameName: 'Word Ladder', gamerId: 'Clever Chloe', score: 1180, rank: 2 },
+                    { gameId: 'word-games', gameName: 'Word Ladder', gamerId: 'Fast Freddie', score: 980, rank: 3 },
+                    { gameId: 'crosswords', gameName: 'Quick Crossword', gamerId: 'Puzzle Pete', score: 870, rank: 1 },
+                    { gameId: 'crosswords', gameName: 'Quick Crossword', gamerId: 'Wordy Wendy', score: 810, rank: 2 },
+                    { gameId: 'crosswords', gameName: 'Quick Crossword', gamerId: 'Smart Simon', score: 750, rank: 3 },
+                    { gameId: 'puzzles', gameName: 'Sudoku', gamerId: 'Logic Lily', score: 2500, rank: 1 },
+                    { gameId: 'puzzles', gameName: 'Sudoku', gamerId: 'Brainy Ben', score: 2300, rank: 2 },
+                    { gameId: 'puzzles', gameName: 'Sudoku', gamerId: 'Quick Quentin', score: 2100, rank: 3 },
+                    { gameId: 'general-knowledge', gameName: 'Daily Quiz', gamerId: 'Quizzy Kate', score: 3400, rank: 1 },
+                    { gameId: 'general-knowledge', gameName: 'Daily Quiz', gamerId: 'Fact Fanatic', score: 3150, rank: 2 },
+                    { gameId: 'general-knowledge', gameName: 'Daily Quiz', gamerId: 'Know-It-All Nora', score: 2900, rank: 3 },
+                ];
+
+
+                React.useEffect(() => {
+                    if (gameInProgress) {
+                        const timer = setTimeout(() => {
+                            setShowBadgeNotification(true);
+                            setGameInProgress(false);
+                        }, 3000);
+                        return () => clearTimeout(timer);
+                    }
+                }, [gameInProgress]);
+
+                React.useEffect(() => {
+                    /* Hide Sudoku notification after a few seconds */
+                    const timer = setTimeout(() => {
+                        setShowSudokuNotification(false);
+                    }, 5000); /* Show for 5 seconds */
+                    return () => clearTimeout(timer);
+                }, []); /* Run only once on mount */
+
+                const getDifficultyColor = (difficulty) => {
+                    switch(difficulty) {
+                        case 'Easy': return 'text-green-500';
+                        case 'Medium': return 'text-yellow-500';
+                        case 'Hard': return 'text-red-500';
+                        default: return 'text-gray-500';
+                    }
+                };
+
+                const getLabelStyle = (label) => {
+                    switch(label) {
+                        case 'Just Updated': return 'bg-blue-100 text-blue-800';
+                        case 'Most Popular': return 'bg-red-100 text-red-800';
+                        case 'Beat Your Score': return 'bg-green-100 text-green-800';
+                        default: return 'bg-gray-100 text-gray-800';
+                    }
+                };
+
+                const handleSudokuNotificationClick = () => {
+                    setShowSudokuNotification(false);
+                    setCurrentView('game'); /* Directly go to the game view for Sudoku */
+                    setGameInProgress(true); /* Indicate game is in progress */
+                };
+
+                const handleShareBadges = () => {
+                    // In a real application, you would use navigator.share or a custom share modal here.
+                    // For this demo, we'll just log a message.
+                    if (navigator.share) {
+                        navigator.share({
+                            title: 'My Daily Mail Games Badges!',
+                            text: 'Check out my awesome badges from Daily Mail Games!',
+                            url: window.location.href, // Or a specific link to the user's profile/badges page
+                        })
+                        .then(() => console.log('Successfully shared badges'))
+                        .catch((error) => console.error('Error sharing:', error));
+                    } else {
+                        // Fallback for browsers that don't support Web Share API
+                        alert('Sharing is not supported in this browser. You can manually copy the link!');
+                        console.log('Sharing is not supported in this browser. You can manually copy the link: ' + window.location.href);
+                    }
+                };
+
+                const renderNavigation = () => (
+                    <div className={`p-4 flex flex-col ${isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-slate-900 text-white'}`}>
+                        <div className="flex justify-between items-center mb-2">
+                            <h1 className="text-xl font-bold">Daily Mail</h1>
+                            <div className="flex items-center space-x-2">
+                                <button
+                                    onClick={() => setShowDailyMailPlusModal(true)}
+                                    className={`px-3 py-1 bg-blue-700 rounded-full text-sm font-semibold hover:bg-blue-600 transition-colors ${isDarkMode ? 'text-white' : ''}`}
+                                >
+                                    M+ Subscribe
+                                </button>
+                                <button className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors">
+                                    <SearchIcon size={20} className="text-white" />
+                                </button>
+                                <button
+                                    onClick={() => setCurrentView('account')}
+                                    className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition-colors">
+                                    <UserIcon size={20} className="text-white" />
+                                </button>
+                            </div>
+                        </div>
+                        <nav className="flex space-x-6 text-sm items-baseline overflow-x-auto pb-1">
+                            <button
+                                onClick={() => setCurrentView('home')}
+                                className={`${currentView === 'home' ? 'text-white border-b-2 border-white' : 'text-gray-300'} px-1 py-1 whitespace-nowrap`}
+                            >
+                                UK Home
+                            </button>
+                            <span className="text-gray-300 px-1 py-1 whitespace-nowrap">UK Showbiz</span>
+                            <span className="text-gray-300 px-1 py-1 whitespace-nowrap">TV</span>
+                            <span className="text-gray-300 px-1 py-1 whitespace-nowrap">Royals</span>
+                            <span className="text-gray-300 px-1 py-1 whitespace-nowrap">Sport</span>
+                            <button
+                                onClick={() => setCurrentView('games')}
+                                className={`${currentView === 'games' ? 'text-white border-b-2 border-white' : 'text-gray-300'} px-1 py-1 whitespace-nowrap`}
+                            >
+                                Games
+                            </button>
+                        </nav>
+                    </div>
+                );
+
+                const renderGamesHome = () => (
+                    <div className={`${isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-gray-50 text-gray-900'} min-h-screen`}>
+                        <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6">
+                            <h2 className="text-3xl font-bold mb-2">Daily Mail Games</h2>
+                            <p className="text-blue-100">Challenge yourself with puzzles, quizzes, and brain teasers</p>
+                            <div className="flex items-center mt-4 space-x-6">
+                                <div className="flex items-center space-x-2">
+                                    <ZapIcon className="text-yellow-300" size={20} />
+                                    <span>Streak: {userStats.dailyStreak} days</span>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    {/* ChessRookIcon size for header */}
+                                    <ChessRookIcon className="text-yellow-300" size={28} />
+                                    <span>{userStats.badges} badges earned</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-4">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-xl font-semibold">Game Categories</h3>
+                                <button
+                                    onClick={() => setShowFilters(!showFilters)}
+                                    className={`${isDarkMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-white text-gray-900 border'} flex items-center space-x-2 px-3 py-2 rounded-lg shadow-sm ${isDarkMode ? 'text-white' : ''}`}
+                                >
+                                    <FilterIcon size={16} />
+                                    <span>Filter</span>
+                                </button>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                {gameCategories.map((category) => (
+                                    <button
+                                        key={category.id}
+                                        onClick={() => {
+                                            setSelectedCategory(category);
+                                            setCurrentView('category');
+                                        }}
+                                        className={`${isDarkMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-white text-gray-900 border'} p-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 hover:scale-105`}
+                                    >
+                                        <div className="text-3xl mb-2">{category.icon}</div>
+                                        <h4 className="font-semibold mb-1">{category.title}</h4>
+                                        <p className="text-sm">{category.description}</p>
+                                        <div className="mt-3 text-xs text-blue-600 font-medium">
+                                            {category.games?.length || 0} games available
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+
+                            <div className="mt-8">
+                                <h3 className="text-xl font-semibold">Continue Playing</h3>
+                                <div className={`${isDarkMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-white text-gray-900 border'} p-4 rounded-lg shadow-sm`}>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-3">
+                                            <div className="w-12 h-12 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold">
+                                                📊
+                                            </div>
+                                            <div>
+                                                <h4 className="font-semibold">Medium Sudoku</h4>
+                                                <p className="text-sm text-gray-600">67% complete</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => {
+                                                setCurrentView('game');
+                                                setGameInProgress(true);
+                                            }}
+                                            className={`px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors ${isDarkMode ? 'text-white' : ''}`}
+                                        >
+                                            Continue
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Today's Leaderboards Section - Moved to Games Page */}
+                            <div className="mt-8">
+                                <h3 className={`text-xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-800'} border-b-2 border-red-500 pb-2`}>Today's Leaderboards</h3>
+                                <div className="flex space-x-2 overflow-x-auto py-2">
+                                    <button
+                                        onClick={() => setSelectedTodaysGameFilter('all')}
+                                        className={`px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap transition-colors
+                                            ${selectedTodaysGameFilter === 'all' ? 'bg-blue-600 text-white' : (isDarkMode ? 'bg-gray-600 text-gray-100 hover:bg-gray-500' : 'bg-gray-200 text-gray-800 hover:bg-gray-300')}`}
+                                    >
+                                        All Games
+                                    </button>
+                                    {gameCategories.map(category => (
+                                        <button
+                                            key={category.id}
+                                            onClick={() => setSelectedTodaysGameFilter(category.id)}
+                                            className={`px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap transition-colors
+                                                ${selectedTodaysGameFilter === category.id ? 'bg-blue-600 text-white' : (isDarkMode ? 'bg-gray-600 text-gray-100 hover:bg-gray-500' : 'bg-gray-200 text-gray-800 hover:bg-gray-300')}`}
+                                        >
+                                            {category.title}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                <div className="space-y-3 mt-4">
+                                    {todaysLeaderboardData
+                                        .filter(entry => selectedTodaysGameFilter === 'all' || entry.gameId === selectedTodaysGameFilter)
+                                        .sort((a, b) => a.rank - b.rank) // Ensure correct sorting by rank
+                                        .map((entry, index) => (
+                                            <div key={index} className={`${isDarkMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-white text-gray-900 border'} p-3 rounded-lg shadow-sm flex items-center justify-between`}>
+                                                <div className="flex items-center space-x-3">
+                                                    <span className="font-bold text-lg text-blue-600">#{entry.rank}</span>
+                                                    <div>
+                                                        <div className="font-medium">{entry.gamerId}</div>
+                                                        <div className="text-sm text-gray-600">{entry.gameName}</div>
+                                                    </div>
+                                                </div>
+                                                <div className="font-bold text-purple-600">{entry.score.toLocaleString()} pts</div>
+                                            </div>
+                                        ))}
+                                    {todaysLeaderboardData.filter(entry => selectedTodaysGameFilter === 'all' || entry.gameId === selectedTodaysGameFilter).length === 0 && (
+                                        <p className={`${isDarkMode ? 'text-gray-400' : 'text-gray-600'} text-center py-4`}>No leaderboard data for this game today.</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+                const renderCategoryView = () => (
+                    <div className={`${isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-gray-50 text-gray-900'} min-h-screen`}>
+                        <div className={`${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-b'} p-4`}>
+                            <button
+                                onClick={() => setCurrentView('games')}
+                                className="text-blue-600 mb-2"
+                            >
+                                ← Back to Games
+                            </button>
+                            <h2 className="text-2xl font-bold">{selectedCategory?.title}</h2>
+                            <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{selectedCategory?.description}</p>
+                        </div>
+
+                        <div className="p-4">
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="font-semibold">Available Games</h3>
+                                <div className="flex space-x-2">
+                                    <button className={`${isDarkMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-white text-gray-900 border'} px-3 py-1 rounded text-sm ${isDarkMode ? 'text-white' : ''}`}>
+                                        Sort: Popular
+                                    </button>
+                                    <button className={`${isDarkMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-white text-gray-900 border'} px-3 py-1 rounded text-sm ${isDarkMode ? 'text-white' : ''}`}>
+                                        <FilterIcon size={14} className="inline mr-1" />
+                                        Filter
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                {selectedCategory?.games.map((game, index) => (
+                                    <div key={index} className={`${isDarkMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-white text-gray-900 border'} p-4 rounded-lg shadow-sm`}>
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div>
+                                                <h4 className="font-semibold text-lg">{game.name}</h4>
+                                                <div className="flex items-center space-x-4 mt-1">
+                                                    <span className={`text-sm font-medium ${getDifficultyColor(game.difficulty)}`}>
+                                                        {game.difficulty}
+                                                    </span>
+                                                    <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} flex items-center`}>
+                                                        <ClockIcon size={14} className="mr-1" />
+                                                        {game.time}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getLabelStyle(game.label)}`}>
+                                                {game.label}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                Your best: {Math.floor(Math.random() * 3000 + 1000)} points
+                                            </div>
+                                            <button
+                                                onClick={() => {
+                                                    setCurrentView('game');
+                                                    if (game.name === 'Sudoku') {
+                                                        setGameInProgress(true);
+                                                    }
+                                                }}
+                                                className={`px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors ${isDarkMode ? 'text-white' : ''}`}
+                                            >
+                                                Play Now
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+
+                const renderSudokuGame = () => {
+                    const sudokuGrid = [
+                        [5, 3, 0, 0, 7, 0, 0, 0, 0],
+                        [6, 0, 0, 1, 9, 5, 0, 0, 0],
+                        [0, 9, 8, 0, 0, 0, 0, 6, 0],
+                        [8, 0, 0, 0, 6, 0, 0, 0, 3],
+                        [4, 0, 0, 8, 0, 3, 0, 0, 1],
+                        [7, 0, 0, 0, 2, 0, 0, 0, 6],
+                        [0, 6, 0, 0, 0, 0, 2, 8, 0],
+                        [0, 0, 0, 4, 1, 9, 0, 0, 5],
+                        [0, 0, 0, 0, 8, 0, 0, 7, 9]
+                    ];
+
+                    return (
+                        <div className={`${isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-gray-50 text-gray-900'} min-h-screen`}>
+                            <div className={`${isDarkMode ? 'bg-gray-700 border-gray-600' : 'bg-white border-b'} p-4`}>
+                                <div className="flex justify-between items-center">
+                                    <button
+                                        onClick={() => setCurrentView('category')}
+                                        className="text-blue-600"
+                                    >
+                                        ← Back
+                                    </button>
+                                    <h2 className="text-xl font-bold">Medium Sudoku</h2>
+                                    <div className="flex items-center space-x-2">
+                                        <ClockIcon size={16} />
+                                        <span className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>12:34</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-4">
+                                <div className={`${isDarkMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-white text-gray-900 border'} p-4 rounded-lg shadow-sm mb-4`}>
+                                    <div className="flex justify-between items-center mb-4">
+                                        <div className="flex items-center space-x-4">
+                                            <div className="flex items-center space-x-2">
+                                                <TargetIcon size={16} className="text-blue-600" />
+                                                <span className="text-sm">Difficulty: Medium</span>
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <StarIcon size={16} className="text-yellow-500" />
+                                                <span className="text-sm">Best: 2840pts</span>
+                                            </div>
+                                        </div>
+                                        <button className={`${isDarkMode ? 'text-gray-300 hover:text-gray-100' : 'text-gray-600 hover:text-gray-800'} p-2`}>
+                                            <RotateCcwIcon size={16} />
+                                        </button>
+                                    </div>
+
+                                    <div className="grid grid-cols-9 gap-1 bg-gray-800 p-2 rounded-lg max-w-sm mx-auto">
+                                        {sudokuGrid.flat().map((cell, index) => (
+                                            <div
+                                                key={index}
+                                                className="bg-white w-8 h-8 flex items-center justify-center text-sm font-semibold border border-gray-300"
+                                            >
+                                                {cell !== 0 ? cell : ''}
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="mt-4 flex justify-center">
+                                        <button
+                                            onClick={() => setGameInProgress(true)}
+                                            className={`px-6 py-3 bg-green-600 rounded-lg hover:bg-green-700 transition-colors font-semibold ${isDarkMode ? 'text-white' : ''}`}
+                                        >
+                                            Complete Game
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className={`${isDarkMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-white text-gray-900 border'} p-4 rounded-lg shadow-sm`}>
+                                    <h3 className="font-semibold mb-3">Game Stats</h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="text-center">
+                                            <div className="text-2xl font-bold text-blue-600">67%</div>
+                                            <div className="text-sm text-gray-600">Complete</div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-2xl font-bold text-green-600">28</div>
+                                            <div className="text-sm text-gray-600">Correct</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                };
+
+                const renderAccountView = () => {
+                    const filteredLeaderboardData = leaderboardData.filter(
+                        (entry) => entry.type === currentRankingFilter
+                    );
+
+                    return (
+                        <div className={`${isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-gray-50 text-gray-900'} min-h-screen`}>
+                            <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6">
+                                <h2 className="text-2xl font-bold mb-2">Your Gaming Profile</h2>
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                        <PixelSnapeIcon size={24} /> {/* Changed to PixelSnapeIcon */}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-semibold">Severus Snape</h3> {/* Player name changed to Severus Snape */}
+                                        <p className="text-purple-100">Level 12 • London</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-4 space-y-6">
+                                <div className={`${isDarkMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-white text-gray-900 border'} p-4 rounded-lg shadow-sm`}>
+                                    <h3 className="font-semibold mb-4 flex items-center justify-between">
+                                        <span className="flex items-center">
+                                            <TrendingUpIcon className="mr-2 text-blue-600" size={20} />
+                                            Your Stats
+                                        </span>
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="text-center">
+                                            <div className="text-2xl font-bold text-blue-600">{userStats.dailyStreak}</div>
+                                            <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Day Streak</div> {/* Adjusted color for dark mode */}
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-2xl font-bold text-green-600">{userStats.totalGamesPlayed}</div>
+                                            <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Games Played</div> {/* Adjusted color for dark mode */}
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-2xl font-bold text-purple-600">{userStats.averageScore}%</div>
+                                            <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Avg Score</div> {/* Adjusted color for dark mode */}
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="text-2xl font-bold text-orange-600">#{userStats.rank}</div>
+                                            <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>Regional Rank</div> {/* Adjusted color for dark mode */}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className={`${isDarkMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-white text-gray-900 border'} p-4 rounded-lg shadow-sm`}>
+                                    <h3 className="font-semibold mb-4 flex items-center justify-between">
+                                        <span className="flex items-center">
+                                            <AwardIcon className="mr-2 text-yellow-600" size={20} />
+                                            Your Badges
+                                        </span>
+                                        <button
+                                            onClick={handleShareBadges}
+                                            className={`px-3 py-1 bg-blue-600 rounded-full text-sm font-semibold hover:bg-blue-700 transition-colors flex items-center ${isDarkMode ? 'text-white' : ''}`}
+                                        >
+                                            <ShareIcon size={16} className="mr-1" /> Share
+                                        </button>
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        {userBadges.map((badge, index) => (
+                                            <div
+                                                key={index}
+                                                className={`p-3 rounded-lg border-2 ${badge.earned ? 'border-yellow-300 bg-yellow-50' : (isDarkMode ? 'border-gray-600 bg-gray-800' : 'border-gray-200 bg-gray-50')}`}
+                                            >
+                                                <div className="text-2xl mb-1">{badge.icon}</div>
+                                                <div className={`font-medium text-sm ${badge.earned ? 'text-gray-800' : (isDarkMode ? 'text-gray-400' : 'text-gray-400')}`}>
+                                                    {badge.name}
+                                                </div>
+                                                <div className={`text-xs ${badge.earned ? 'text-gray-600' : (isDarkMode ? 'text-gray-500' : 'text-gray-400')}`}>
+                                                    {badge.description}
+                                                </div>
+                                                {!badge.earned && badge.progress !== undefined && badge.total !== undefined && (
+                                                    <div className="mt-2 w-full bg-gray-200 rounded-full h-2.5 relative overflow-hidden">
+                                                        <div
+                                                            className="bg-blue-600 h-full rounded-full"
+                                                            style={{ width: `${(badge.progress / badge.total) * 100}%` }}
+                                                        ></div>
+                                                        <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-900 px-1">
+                                                            {/* Ensure text doesn't wrap or get too small, add padding */}
+                                                            {badge.progressDescription || `${badge.progress}/${badge.total}`}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className={`${isDarkMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-white text-gray-900 border'} p-4 rounded-lg shadow-sm`}>
+                                    <div className="flex justify-between items-center mb-4">
+                                        <h3 className="font-semibold flex items-center">
+                                            <MedalIcon className="mr-2 text-orange-600" size={20} />
+                                            Your Rankings {/* Renamed from Rankings */}
+                                        </h3>
+                                        {/* Ranking Filter Buttons */}
+                                        <div className="flex space-x-2 overflow-x-auto pb-1"> {/* Added overflow-x-auto for smaller screens */}
+                                            <button
+                                                onClick={() => setCurrentRankingFilter('regional')}
+                                                className={`px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap transition-colors
+                                                    ${currentRankingFilter === 'regional' ? 'bg-blue-600 text-white' : (isDarkMode ? 'bg-gray-600 text-gray-100 hover:bg-gray-500' : 'bg-gray-200 text-gray-800 hover:bg-gray-300')}`}
+                                            >
+                                                Regional
+                                            </button>
+                                            <button
+                                                onClick={() => setCurrentRankingFilter('uk-ireland')}
+                                                className={`px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap transition-colors
+                                                    ${currentRankingFilter === 'uk-ireland' ? 'bg-blue-600 text-white' : (isDarkMode ? 'bg-gray-600 text-gray-100 hover:bg-gray-500' : 'bg-gray-200 text-gray-800 hover:bg-gray-300')}`}
+                                            >
+                                                UK & Ireland
+                                            </button>
+                                            <button
+                                                onClick={() => setCurrentRankingFilter('global')}
+                                                className={`px-3 py-1 rounded-full text-sm font-semibold whitespace-nowrap transition-colors
+                                                    ${currentRankingFilter === 'global' ? 'bg-blue-600 text-white' : (isDarkMode ? 'bg-gray-600 text-gray-100 hover:bg-gray-500' : 'bg-gray-200 text-gray-800 hover:bg-gray-300')}`}
+                                            >
+                                                Global
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        {filteredLeaderboardData.map((entry, index) => (
+                                            <div key={index} className={`${isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-gray-50 text-gray-900'} flex justify-between items-center p-3 rounded-lg`}>
+                                                <div>
+                                                    <div className="font-medium">{entry.game}</div>
+                                                    <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'} flex items-center`}>
+                                                        <MapPinIcon size={12} className="mr-1" />
+                                                        {entry.region}
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="text-lg font-bold text-orange-600">#{entry.position}</div>
+                                                    <div className={`text-sm ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{entry.score.toLocaleString()} pts</div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Accessibility Preferences Section */}
+                                <div className={`${isDarkMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-white text-gray-900 border'} p-4 rounded-lg shadow-sm`}>
+                                    <h3 className="font-semibold mb-4 flex items-center">
+                                        <EyeIcon className="mr-2 text-indigo-600" size={20} />
+                                        Accessibility Preferences
+                                    </h3>
+                                    <div className="space-y-3">
+                                        <button
+                                            onClick={() => setIsDarkMode(!isDarkMode)}
+                                            className="w-full text-left px-4 py-3 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex justify-between items-center"
+                                        >
+                                            <span className={`text-gray-900`}>Dark Mode</span> {/* Changed to always be text-gray-900 */}
+                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${isDarkMode ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-800'}`}>
+                                                {isDarkMode ? 'On' : 'Off'}
+                                            </span>
+                                        </button>
+                                        <button
+                                            onClick={() => setIsLargeFont(!isLargeFont)}
+                                            className="w-full text-left px-4 py-3 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors flex justify-between items-center"
+                                        >
+                                            <span className={`text-gray-900`}>Increase Font Size</span> {/* Changed to always be text-gray-900 */}
+                                            <span className={`px-3 py-1 rounded-full text-xs font-semibold ${isLargeFont ? 'bg-blue-500 text-white' : 'bg-gray-300 text-gray-800'}`}>
+                                                {isLargeFont ? 'On' : 'Off'}
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Color Mode Section */}
+                                <div className={`${isDarkMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-white text-gray-900 border'} p-4 rounded-lg shadow-sm`}>
+                                    <h3 className="font-semibold mb-4 flex items-center">
+                                        <PaletteIcon className="mr-2 text-pink-600" size={20} />
+                                        Color Mode
+                                    </h3>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <button
+                                            onClick={() => setColorFilter('none')}
+                                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${colorFilter === 'none' ? 'bg-blue-600 text-white' : (isDarkMode ? 'bg-gray-600 text-gray-100 hover:bg-gray-500' : 'bg-gray-200 text-gray-800 hover:bg-gray-300')}`}
+                                        >
+                                            Normal
+                                        </button>
+                                        <button
+                                            onClick={() => setColorFilter('deuteranopia')}
+                                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${colorFilter === 'deuteranopia' ? 'bg-blue-600 text-white' : (isDarkMode ? 'bg-gray-600 text-gray-100 hover:bg-gray-500' : 'bg-gray-200 text-gray-800 hover:bg-gray-300')}`}
+                                        >
+                                            Deuteranopia
+                                        </button>
+                                        <button
+                                            onClick={() => setColorFilter('protanopia')}
+                                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${colorFilter === 'protanopia' ? 'bg-blue-600 text-white' : (isDarkMode ? 'bg-gray-600 text-gray-100 hover:bg-gray-500' : 'bg-gray-200 text-gray-800 hover:bg-gray-300')}`}
+                                        >
+                                            Protanopia
+                                        </button>
+                                        <button
+                                            onClick={() => setColorFilter('tritanopia')}
+                                            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${colorFilter === 'tritanopia' ? 'bg-blue-600 text-white' : (isDarkMode ? 'bg-gray-600 text-gray-100 hover:bg-gray-500' : 'bg-gray-200 text-gray-800 hover:bg-gray-300')}`}
+                                        >
+                                            Tritanopia
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* "Subscribe to DailyMail+" button */}
+                                <div className="mt-6 text-center">
+                                    <button
+                                        onClick={() => setShowDailyMailPlusModal(true)}
+                                        className={`px-6 py-3 bg-blue-600 rounded-full text-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl ${isDarkMode ? 'text-white' : ''}`}
+                                    >
+                                        Subscribe to DailyMail+
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                };
+
+                const BadgeNotification = () => (
+                    <div
+                        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+                        onClick={() => setShowBadgeNotification(false)}
+                    >
+                        <div
+                            className="bg-white p-6 rounded-2xl shadow-xl max-w-sm mx-4 text-center relative"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button
+                                onClick={() => setShowBadgeNotification(false)}
+                                className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+                            >
+                                <XIcon size={20} />
+                            </button>
+                            <div className="text-6xl mb-4">🔥</div>
+                            <h3 className="text-xl font-bold text-gray-800 mb-2">You're on a roll!</h3>
+                            <p className="text-gray-600 mb-4">
+                                Daily streak: {userStats.dailyStreak} days<br />
+                                <span className="font-semibold text-blue-600">New top score!</span>
+                            </p>
+                            <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white p-3 rounded-lg">
+                                <div className="font-bold">🏆 Achievement Unlocked</div>
+                                <div className="text-sm">Streak Master Badge</div>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+                const DailySudokuNotification = () => (
+                    <div
+                        onClick={handleSudokuNotificationClick}
+                        className={`fixed top-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-green-500 text-white p-3 text-center rounded-b-lg shadow-lg cursor-pointer z-40 transition-transform duration-300 ${showSudokuNotification ? 'translate-y-0' : '-translate-y-full'}`}
+                    >
+                        <div className="flex items-center justify-center space-x-2">
+                            <ZapIcon size={20} className="text-yellow-200" />
+                            <span className="font-semibold">Daily Sudoku has just dropped - jump in now!</span>
+                        </div>
+                    </div>
+                );
+
+                const DailyMailPlusModal = () => {
+                    return (
+                        <div
+                            className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
+                            onClick={() => setShowDailyMailPlusModal(false)}
+                            > {/* Click off to close */}
+                            <div className="bg-white p-6 rounded-2xl shadow-2xl max-w-sm mx-auto text-center relative"
+                                 onClick={(e) => e.stopPropagation()}
+                                 > {/* Prevent clicks inside from closing */}
+                                <button
+                                    onClick={() => setShowDailyMailPlusModal(false)}
+                                    className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    <XIcon size={24} /> {/* Close button */}
+                                </button>
+
+                                <div className="mb-6">
+                                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Subscribe to continue</h3>
+                                    <h2 className="text-4xl font-extrabold text-blue-700 mb-2">DailyMail<span className="text-orange-500">+</span></h2>
+                                    <p className="text-gray-700 text-lg mb-4">Get more from the Daily Mail</p>
+                                    <button className={`w-full px-6 py-3 bg-green-600 rounded-full text-lg font-bold hover:bg-green-700 transition-colors shadow-md ${isDarkMode ? 'text-white' : ''}`}>
+                                        £1.99 per month for your first year
+                                    </button>
+                                </div>
+
+                                <ul className="text-left text-gray-800 space-y-3 mb-6">
+                                    <li className="flex items-center">
+                                        <CheckCircleIcon size={20} className="text-green-500 mr-2 flex-shrink-0" />
+                                        Exclusive stories and interviews
+                                    </li>
+                                    <li className="flex items-center">
+                                        <CheckCircleIcon size={20} className="text-green-500 mr-2 flex-shrink-0" />
+                                        Unlimited access to the daily mail
+                                    </li>
+                                    <li className="flex items-center">
+                                        <CheckCircleIcon size={20} className="text-green-500 mr-2 flex-shrink-0" />
+                                        Reset your daily game match score, and climb the leaderboards <span className="text-gray-500 text-sm ml-1">(shh! we won't tell)</span>
+                                    </li>
+                                    <li className="flex items-center">
+                                        <CheckCircleIcon size={20} className="text-green-500 mr-2 flex-shrink-0" />
+                                        Best of DailyMail+ weekly newsletter
+                                    </li>
+                                </ul>
+
+                                <button className={`text-blue-600 font-semibold hover:underline mt-4 ${isDarkMode ? 'text-white' : ''}`}>
+                                    Already a subscriber? Log in
+                                </button>
+                            </div>
+                        </div>
+                    );
+                };
+
+                return (
+                    <div className={`max-w-lg mx-auto shadow-xl min-h-screen font-sans
+                        ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}
+                        ${isLargeFont ? 'text-lg' : 'text-base'}`}
+                        style={{ filter: colorFilter !== 'none' ? `url(#${colorFilter})` : 'none' }}>
+
+                        {renderNavigation()}
+
+                        {showSudokuNotification && <DailySudokuNotification />}
+
+                        {currentView === 'home' && (
+                            <div className="p-4">
+                                {/* New Hero Rail Section */}
+                                <div className={`py-4 px-4 rounded-lg shadow-sm mb-6
+                                    ${isDarkMode ? 'bg-gray-700 text-gray-100' : 'bg-blue-600 text-white'}`}>
+                                    <div className="flex items-center justify-center mb-2">
+                                        <span className="relative flex h-3 w-3 mr-2">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                                        </span>
+                                        <span className="text-sm font-semibold uppercase">LIVE</span>
+                                    </div>
+                                    <h3 className="text-center text-xl font-bold leading-tight">
+                                        Breaking: Scientists discover new galaxy with rare cosmic phenomena!
+                                    </h3>
+                                    <p className="text-center text-sm mt-2 opacity-90">
+                                        New astronomical findings could redefine our understanding of the universe.
+                                    </p>
+                                </div>
+
+                                {/* Top Stories Section - Now comes after Hero Rail on Home page */}
+                                <div className="mt-8">
+                                    <h3 className={`text-xl font-bold ${isDarkMode ? 'text-gray-100' : 'text-gray-800'} border-b-2 border-red-500 pb-2`}>Top Stories</h3>
+                                    <div className="mt-4 space-y-4">
+                                        {newsHeadlines.map((news) => (
+                                            <div key={news.id} className={`${isDarkMode ? 'bg-gray-700 text-gray-100 border-gray-600' : 'bg-white text-gray-900 border'} p-4 rounded-lg shadow-sm flex space-x-4`}>
+                                                <img
+                                                    src={news.imageUrl}
+                                                    alt={news.headline}
+                                                    className="w-24 h-24 object-cover rounded-lg flex-shrink-0"
+                                                    onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/100x100/CCCCCC/666666?text=Image'; }}
+                                                />
+                                                <div>
+                                                    <h4 className={`text-lg font-semibold ${isDarkMode ? 'text-gray-100' : 'text-gray-900'} mb-1`}>{news.headline}</h4>
+                                                    <p className={`${isDarkMode ? 'text-gray-300' : 'text-gray-700'} text-sm`}>{news.brief}</p>
+                                                    <button className={`text-blue-600 text-sm mt-2 hover:underline ${isDarkMode ? 'text-white' : ''}`}>Read more →</button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Featured Games Carousel Section */}
+                                <div className={`py-0 px-4 mt-8 rounded-lg shadow-sm ${isDarkMode ? 'bg-gray-700' : 'bg-gray-100'}`}>
+                                    <h3 className={`text-xl font-bold mb-4 ${isDarkMode ? 'text-gray-100' : 'text-gray-800'}`}>Featured Games</h3>
+                                    <div className="flex overflow-x-auto snap-x-mandatory space-x-4 pb-2">
+                                        {gameCategories.map(category => (
+                                            <div
+                                                key={category.id}
+                                                onClick={() => {
+                                                    setSelectedCategory(category);
+                                                    setCurrentView('category');
+                                                }}
+                                                className={`flex-shrink-0 w-48 rounded-lg shadow-md relative group snap-start
+                                                          flex flex-col items-center justify-center text-center font-bold text-xl cursor-pointer transition-colors duration-200
+                                                          ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700 text-white' : 'bg-white hover:bg-gray-100 text-gray-900'}`}
+                                                style={{ height: '120px' }}
+                                            >
+                                                <div className="text-3xl mb-2">{category.icon}</div>
+                                                <div className="font-semibold text-lg">{category.title}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button
+                                        onClick={() => setCurrentView('games')}
+                                        className={`mt-4 w-full px-4 py-2 bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors text-lg font-semibold shadow-lg ${isDarkMode ? 'text-white' : ''}`}
+                                    >
+                                        Explore All Games
+                                    </button>
+                                </div>
+
+                            </div>
+                        )}
+
+                        {currentView === 'games' && renderGamesHome()}
+                        {currentView === 'category' && renderCategoryView()}
+                        {currentView === 'game' && renderSudokuGame()}
+                        {currentView === 'account' && renderAccountView()}
+
+                        {showBadgeNotification && <BadgeNotification />}
+                        {showDailyMailPlusModal && <DailyMailPlusModal />}
+
+                        <div className={`fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-lg ${isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-200'} border-t rounded-t-xl shadow-inner`}>
+                            <div className="flex justify-around py-2">
+                                <button
+                                    onClick={() => setCurrentView('home')}
+                                    className={`flex flex-col items-center p-2 rounded-lg transition-colors
+                                    ${currentView === 'home'
+                                      ? 'text-blue-600 bg-blue-50'
+                                      : isDarkMode
+                                        ? 'text-gray-200 hover:bg-gray-700'
+                                        : 'text-gray-600 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    <HomeIcon size={20} />
+                                    <span className="text-xs mt-1">News</span>
+                                </button>
+                                <button
+                                    onClick={() => setCurrentView('games')}
+                                    className={`flex flex-col items-center p-2 rounded-lg transition-colors
+                                    ${currentView === 'games'
+                                      ? 'text-blue-600 bg-blue-50'
+                                      : isDarkMode
+                                        ? 'text-gray-200 hover:bg-gray-700'
+                                        : 'text-gray-600 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    {/* ChessRookIcon size for bottom navigation */}
+                                    <ChessRookIcon size={20} />
+                                    <span className="text-xs mt-1">Games</span>
+                                </button>
+                                <button
+                                    onClick={() => setShowDailyMailPlusModal(true)}
+                                    className={`flex flex-col items-center p-2 rounded-lg transition-colors
+                                    ${isDarkMode
+                                      ? 'text-gray-200 hover:bg-gray-700'
+                                      : 'text-gray-600 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    <CalendarIcon size={20} />
+                                    <span className="text-xs mt-1">DailyMail+</span>
+                                </button>
+                                <button className={`flex flex-col items-center p-2 rounded-lg transition-colors
+                                    ${isDarkMode
+                                      ? 'text-gray-200 hover:bg-gray-700'
+                                      : 'text-gray-600 hover:bg-gray-50'
+                                    }`}>
+                                    <BellIcon size={20} />
+                                    <span className="text-xs mt-1">Alerts</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+            // Render the main application component to the root div
+            ReactDOM.render(<DailyMailGamesApp />, document.getElementById('root'));
+        };
+    </script>
+</body>
+</html>

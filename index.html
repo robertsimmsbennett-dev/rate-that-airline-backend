@@ -295,15 +295,15 @@
                 const newsHeadlines = [
                     {
                         id: 1,
-                        headline: 'King Charles in new health scare as Royal insiders reveal concerns',
-                        brief: 'The monarch is reportedly facing new health challenges, with palace sources indicating a period of rest. Royal watchers are on alert.',
-                        imageUrl: 'https://placehold.co/100x100/4CAF50/FFFFFF?text=King' // Pixel art style: Green background, white text
+                        headline: 'The Autumn Budget: How it will affect you',
+                        brief: 'Get ready for significant changes! We break down what the Chancellor\'s new Autumn Budget means for your finances, from tax adjustments to new spending policies.',
+                        imageUrl: 'https://placehold.co/100x100/4CAF50/FFFFFF?text=Budget' // Pixel art style: Green background, white text
                     },
                     {
                         id: 2,
-                        headline: 'England prepare for Euro 2024 showdown: Can they bring it home?',
-                        brief: 'Gareth Southgate’s squad gears up for a crucial match. Experts weigh in on their chances of winning the tournament this year.',
-                        imageUrl: 'https://placehold.co/100x100/FF5722/FFFFFF?text=Euro' // Pixel art style: Orange background, white text
+                        headline: 'Premier League 2025: Title Race Heats Up! Shock Leaders Emerge',
+                        brief: 'Mid-season drama as unexpected contenders vie for the top spot. Experts analyze the key fixtures and potential upsets in this thrilling campaign.',
+                        imageUrl: 'https://placehold.co/100x100/FF5722/FFFFFF?text=PL' // Pixel art style: Orange background, white text
                     },
                     {
                         id: 3,
@@ -342,7 +342,7 @@
                     {
                         id: 'crosswords',
                         title: 'Crosswords',
-                        icon: '�',
+                        icon: '🔲',
                         description: 'Classic puzzles daily',
                         imageUrl: 'https://placehold.co/200x120/E0B8A0/333333?text=Crosswords',
                         games: [
@@ -816,14 +816,32 @@
                     return (
                         <div className={`${isDarkMode ? 'bg-gray-800 text-gray-100' : 'bg-gray-50 text-gray-900'} min-h-screen`}>
                             <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6">
-                                <h2 className="text-2xl font-bold mb-2">Your Gaming Profile</h2>
-                                <div className="flex items-center space-x-4">
-                                    <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                                        <PixelSnapeIcon size={24} /> {/* Changed to PixelSnapeIcon */}
-                                    </div>
+                                <div className="flex justify-between items-start"> {/* Main flex container for left and right content */}
+                                    {/* Left side: Your Gaming Profile and user info */}
                                     <div>
-                                        <h3 className="text-lg font-semibold">Severus Snape</h3> {/* Player name changed to Severus Snape */}
-                                        <p className="text-purple-100">Level 12 • London</p>
+                                        <h2 className="text-2xl font-bold mb-2">Your Gaming Profile</h2>
+                                        <div className="flex items-center space-x-4">
+                                            <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                                                <PixelSnapeIcon size={24} /> {/* Changed to PixelSnapeIcon */}
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-semibold">Severus Snape</h3> {/* Player name changed to Severus Snape */}
+                                                <p className="text-purple-100">Level 12 • London</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Right side: CTA for Daily Mail + Subscription */}
+                                    <div className="text-right flex flex-col items-end"> {/* Use flex-col and items-end to align contents to the right */}
+                                        <button
+                                            onClick={() => setShowDailyMailPlusModal(true)}
+                                            className={`px-4 py-2 bg-white bg-opacity-90 text-blue-800 rounded-full text-sm font-semibold hover:bg-opacity-100 transition-colors shadow-lg hover:shadow-xl`}
+                                        >
+                                            Subscribe to Daily Mail +
+                                        </button>
+                                        <p className="text-blue-100 text-xs mt-2 max-w-[150px] text-right"> {/* Max-width to control text wrapping */}
+                                            Unlock more games, more challenging levels, and climb the leaderboard with Daily Mail +
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -1012,15 +1030,15 @@
                                     </div>
                                 </div>
 
-                                {/* "Subscribe to DailyMail+" button */}
-                                <div className="mt-6 text-center">
+                                {/* This button is now redundant as it's moved to the header for the Account view. */}
+                                {/* <div className="mt-6 text-center">
                                     <button
                                         onClick={() => setShowDailyMailPlusModal(true)}
                                         className={`px-6 py-3 bg-blue-600 rounded-full text-lg font-semibold hover:bg-blue-700 transition-colors shadow-lg hover:shadow-xl ${isDarkMode ? 'text-white' : ''}`}
                                     >
                                         Subscribe to DailyMail+
                                     </button>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
                     );
@@ -1104,10 +1122,6 @@
                                     <li className="flex items-center">
                                         <CheckCircleIcon size={20} className="text-green-500 mr-2 flex-shrink-0" />
                                         Reset your daily game match score, and climb the leaderboards <span className="text-gray-500 text-sm ml-1">(shh! we won't tell)</span>
-                                    </li>
-									                                    <li className="flex items-center">
-                                        <CheckCircleIcon size={20} className="text-green-500 mr-2 flex-shrink-0" />
-                                        Remove the Ads from Games <span className="text-gray-500 text-sm ml-1"></span>
                                     </li>
                                     <li className="flex items-center">
                                         <CheckCircleIcon size={20} className="text-green-500 mr-2 flex-shrink-0" />
